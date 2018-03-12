@@ -17,6 +17,7 @@ base.user_id = '14677228627537'
 
 present.friend = True
 present.gold = True
+acmp.get_friendPT(30)
 #present.present([0, 0, 0, 0, 0])
 #exit()
 clean.gacha_turns = 700
