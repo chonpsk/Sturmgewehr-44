@@ -43,12 +43,12 @@ if sell card with rarity N. Or they will be fed to cards.
 if decompose all cards that can be decomposed. Or it won't decompose cards of 04.
 
 ### clean.gacha_turns
-the times you want to do normal gacha.
+the times you need to do normal gacha.
 
 ### clean.clean
 Use all cards in the card box which is experience material or whose rarity is N to feed the assigned card.
 
-Need get `card_id` from packets.
+Need to get `card_id` from packets.
 
 ### clean.clean_drop_only
 Only use cards from last normal gacha.
