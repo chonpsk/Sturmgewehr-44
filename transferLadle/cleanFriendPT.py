@@ -6,12 +6,9 @@ import time
 import random
 import datetime
 
-sellN = False
-allDecompose = True
-rare = ['N', 'R', 'SR', 'SSR', 'UR', 'LR']
+rare = ['N', 'R', 'SR', 'SSR', 'UR', 'UR+', 'LR']
 pt= [0, 1, 10, 25]
 
-gacha_turns = 999
 
 tot = 0
 
@@ -149,6 +146,7 @@ def merge(base_card_id, drop_cards = 0):
 
 	if int(after['card_level']) >= int(after['card_max_level']):
 		print ("Level MAX!!!!")
+		target_card_list.remove(base_card_id)
 		raise GachaError('card level max')
 	
 	return drop_cards == 0
@@ -165,7 +163,7 @@ def merge_card(base_card_id, drop_cards = 0):
 
 	normalPost('http://sb69.geechs-app.com/1/CardDeck/getDeckList', 30)
 
-def clean(base_card, merge_turns = 9):
+def clean_all(base_card, merge_turns = 9):
 	init_time = datetime.datetime.now()
 	try:
 		merge(base_card)
@@ -209,3 +207,37 @@ def clean_drop_only(base_card):
 			return False
 		print ("                    get " + str(tot) + " pt now")
 	return True
+
+def get_card_info():
+	normalPost('http://sb69.geechs-app.com/1/CardDeck/getDeckList', 30)
+	data = getData()
+	del data['user_id']
+	data['support_id'] = '1'
+	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, headers, 30)
+	card_list = normalPost('http://sb69.geechs-app.com/1/Bromide/getCardDataAll', 45).json()['action']
+	for card in card_list:
+		if int(card['card_level']) < int(card['card_max_level']):
+			print (card['user_card_id'] + ' ' + rare[int(card['card_rare']) - 1] + ' ' + card['card_name'].encode('gbk', 'ignore').decode('gbk') + ' ' + 'Lv.' + card['card_level'], end = '')
+			if card['rock_flg'] == '1':
+				print (' locked')
+			else:
+				print (' unlocked')
+
+def clean():
+	global sellN
+	sellN = cfg.getboolean('clean', 'sellN')
+	global allDecompose
+	allDecompose = cfg.getboolean('clean', 'allDecompose')
+	global gacha_turns
+	gacha_turns = cfg.getint('clean', 'gacha_turns')
+	global target_card_list
+	target_card_list = eval(cfg.get('clean', 'target_card_list'))
+	target_card_list_ = list(target_card_list)
+	drop_only = cfg.getboolean('clean', 'drop_only')
+	for card in target_card_list_:
+		if drop_only:
+			clean.clean_drop_only(card)
+		else:
+			clean_all(card)
+		print (' ==== ' + card + ' cleaned ====')
+	return target_card_list

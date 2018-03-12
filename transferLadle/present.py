@@ -6,10 +6,10 @@ import time
 import random
 import datetime
 
-friend = False
-gold = False
-
-def present(foods):
+def present():
+	friend = cfg.getboolean('present', 'friend')
+	gold = cfg.getboolean('present', 'gold')
+	foods = eval(cfg.get('present', 'exp'))
 	fv = [750, 1500, 3750]
 	tot = 0
 	init_time = datetime.datetime.now()
