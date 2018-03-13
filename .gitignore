@@ -1,6 +1,7 @@
 # private_config
 private.py
 expedition/Nexus5.ini
+card_info
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

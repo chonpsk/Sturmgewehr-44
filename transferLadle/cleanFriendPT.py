@@ -215,13 +215,17 @@ def get_card_info():
 	data['support_id'] = '1'
 	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, headers, 30)
 	card_list = normalPost('http://sb69.geechs-app.com/1/Bromide/getCardDataAll', 45).json()['action']
+	card_info = []
 	for card in card_list:
 		if int(card['card_level']) < int(card['card_max_level']):
-			print (card['user_card_id'] + ' ' + rare[int(card['card_rare']) - 1] + ' ' + card['card_name'].encode('gbk', 'ignore').decode('gbk') + ' ' + 'Lv.' + card['card_level'], end = '')
+			info = card['user_card_id'] + ' ' + rare[int(card['card_rare']) - 1] + ' ' + card['card_name'].encode('gbk', 'ignore').decode('gbk') + ' ' + 'Lv.' + card['card_level']
 			if card['rock_flg'] == '1':
-				print (' locked')
+				info += ' locked'
 			else:
-				print (' unlocked')
+				info += ' unlocked'
+			card_info.append(info)
+			print (info)
+	return card_info
 
 def clean():
 	global sellN
