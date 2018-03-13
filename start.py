@@ -14,6 +14,9 @@ set_config(config_path)
 acmp.get_friendPT()
 present.present()
 clean.get_card_info()
+fl = open(os.path.dirname(os.path.realpath(__file__)) + '\\card_info', 'w')
+for card in card_info:
+	print (card, file = fl)
 target_card_list = clean.clean()
 
 try:
