@@ -21,7 +21,7 @@ class GachaError(Exception):
 def gacha():
 	data = getData()
 	data['detail_flg'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/gacha/getGachaMstAll', data, headers, 45)
+	auto_post('http://sb69.geechs-app.com/1/gacha/getGachaMstAll', data, 45)
 
 	normalPost('http://sb69.geechs-app.com/1/gacha/getGachaData')
 
@@ -39,7 +39,7 @@ def gacha():
 	data['is_sell_card'] = '1'
 	data['is_over_soundoll'] = '1'
 	try:
-		r = session.post('http://sb69.geechs-app.com/1/gacha/execGacha', data = data, headers = headers, timeout = 30)
+		r = session.post('http://sb69.geechs-app.com/1/gacha/execGacha', data = data, timeout = 30)
 	except:
 		return 
 	
@@ -65,7 +65,7 @@ def gacha():
 
 	data = getData()
 	data['detail_flg'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/gacha/getGachaMstAll', data, headers, 45)
+	auto_post('http://sb69.geechs-app.com/1/gacha/getGachaMstAll', data, 45)
 
 	normalPost('http://sb69.geechs-app.com/1/gacha/getGachaData')
 
@@ -74,7 +74,7 @@ def gacha():
 def recycle():
 	data = getData()
 	data['detail_flg'] = '1'
-	r = auto_post('http://sb69.geechs-app.com/1/RecycleGacha/getCardDataAll', data, headers, 45)
+	r = auto_post('http://sb69.geechs-app.com/1/RecycleGacha/getCardDataAll', data, 45)
 	
 	material_card_ids = []
 
@@ -98,13 +98,13 @@ def recycle():
 		data['material_card_ids'] = card_ids
 		#print (card_ids)
 		try:
-			session.post('http://sb69.geechs-app.com/1/RecycleGacha/execRecycleCard', data = data, headers = headers, timeout = 30)
+			session.post('http://sb69.geechs-app.com/1/RecycleGacha/execRecycleCard', data = data, timeout = 30)
 		except:
 			return False
 
 	data = getData()
 	data['detail_flg'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/RecycleGacha/getCardDataAll', data, headers)
+	auto_post('http://sb69.geechs-app.com/1/RecycleGacha/getCardDataAll', data)
 	return True
 
 def recycle_card():
@@ -138,7 +138,7 @@ def merge(base_card_id, drop_cards = 0):
 	data['base_card_id'] = base_card_id
 	data['material_card_ids[]'] = material_card_ids
 	try:
-		after = session.post('http://sb69.geechs-app.com/1/Bromide/execMergeCard', data = data, headers = headers, timeout = 30).json()['action']['after']
+		after = session.post('http://sb69.geechs-app.com/1/Bromide/execMergeCard', data = data, timeout = 30).json()['action']['after']
 	except:
 		return True
 	
@@ -156,7 +156,7 @@ def merge_card(base_card_id, drop_cards = 0):
 	data = getData()
 	del data['user_id']
 	data['support_id'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, headers, 30)
+	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, 30)
 
 	while (merge(base_card_id, drop_cards)):
 		time.sleep(0.4)
@@ -213,7 +213,7 @@ def get_card_info():
 	data = getData()
 	del data['user_id']
 	data['support_id'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, headers, 30)
+	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, 30)
 	card_list = normalPost('http://sb69.geechs-app.com/1/Bromide/getCardDataAll', 45).json()['action']
 	card_info = []
 	for card in card_list:

@@ -8,7 +8,7 @@ import datetime
 def getList():
 	data = getData()
 	data['state'] = '3'
-	return auto_post('http://sb69.geechs-app.com/1/Accomplishment/getAccomplishmentList', data, headers, 30).json()['action']['not_received']
+	return auto_post('http://sb69.geechs-app.com/1/Accomplishment/getAccomplishmentList', data, 30).json()['action']['not_received']
 
 def receive(lst):
 	acc_ids = []
@@ -20,7 +20,7 @@ def receive(lst):
 	data = getData()
 	data['accomplishment_ids[]'] = acc_ids
 	try:
-		session.post('http://sb69.geechs-app.com/1/Accomplishment/receiveAccomplishmentRewardBundle', data = data, headers = headers, timeout = 30)
+		session.post('http://sb69.geechs-app.com/1/Accomplishment/receiveAccomplishmentRewardBundle', data = data, timeout = 30)
 	except:
 		pass
 	return True
@@ -49,7 +49,7 @@ def get_friendPT():
 		data['accomplishment_ids[]'] = friendPT
 		time.sleep(0.2)
 		try:
-			session.post('http://sb69.geechs-app.com/1/Accomplishment/receiveAccomplishmentRewardBundle', data = data, headers = headers, timeout = 30)
+			session.post('http://sb69.geechs-app.com/1/Accomplishment/receiveAccomplishmentRewardBundle', data = data, timeout = 30)
 		except:
 			continue
 		tot -= 1

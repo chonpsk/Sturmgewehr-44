@@ -20,7 +20,7 @@ def present():
 		data = getData()
 		data['offset'] = '0'
 		data['tab_id'] = '1'
-		rs = auto_post('http://sb69.geechs-app.com/1/presentBox/getNotReceivedPresent', data, headers, 45)
+		rs = auto_post('http://sb69.geechs-app.com/1/presentBox/getNotReceivedPresent', data,  45)
 		js = rs.json()
 		pages = (int(js['action']['max_page']) - 1) // 5 + 1
 
@@ -32,7 +32,7 @@ def present():
 			data = getData()
 			data['offset'] = str(page * 100)
 			data['tab_id'] = 1
-			rs = auto_post('http://sb69.geechs-app.com/1/presentBox/getNotReceivedPresent', data, headers, 45)
+			rs = auto_post('http://sb69.geechs-app.com/1/presentBox/getNotReceivedPresent', data,  45)
 			for prst in rs.json()['action']['present']:
 				if (prst['item_type'] == '17' or prst['item_type'] == '21' or prst['item_type'] == '3'):
 					seq_ids.append(prst['seq_id'])
@@ -57,7 +57,7 @@ def present():
 		data = getData()
 		data['seq_ids[]'] = seq_ids
 		try:
-			session.post('http://sb69.geechs-app.com/1/presentBox/receivePresentBundle', data = data, headers = headers)
+			session.post('http://sb69.geechs-app.com/1/presentBox/receivePresentBundle', data = data)
 		except:
 			time.sleep(4)
 			continue
