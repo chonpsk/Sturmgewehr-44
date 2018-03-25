@@ -1,10 +1,13 @@
 # private_config
 private.py
+service.py
 expedition/Nexus5.ini
+expedition/service.ini
 card_info
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+transferLadle/__pycache__/
 *.py[cod]
 *$py.class
 

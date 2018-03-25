@@ -10,7 +10,7 @@ import os
 session = requests.Session()
 
 cfg = ConfigParser()
-cfg.read(os.path.dirname(os.path.realpath(__file__)) + '\\config.ini')
+cfg.read(os.path.dirname(os.path.realpath(__file__)) + '/config.ini')
 
 for pair in cfg.items('headers'):
 	session.headers[pair[0].upper()] = pair[1]

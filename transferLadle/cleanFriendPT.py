@@ -238,9 +238,12 @@ def clean():
 	target_card_list = eval(cfg.get('clean', 'target_card_list'))
 	target_card_list_ = list(target_card_list)
 	drop_only = cfg.getboolean('clean', 'drop_only')
+	merge_only = cfg.getboolean('clean', 'merge_only')
 	for card in target_card_list_:
-		if drop_only:
-			clean.clean_drop_only(card)
+		if merge_only:
+			merge_card(card)
+		elif drop_only:
+			clean_drop_only(card)
 		else:
 			clean_all(card)
 		print (' ==== ' + card + ' cleaned ====')
