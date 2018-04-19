@@ -21,11 +21,11 @@ class GachaError(Exception):
 def gacha():
 	data = getData()
 	data['detail_flg'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/gacha/getGachaMstAll', data, 45)
+	auto_post('/1/gacha/getGachaMstAll', data, 45)
 
-	normalPost('http://sb69.geechs-app.com/1/gacha/getGachaData')
+	normalPost('/1/gacha/getGachaData')
 
-	normalPost('http://sb69.geechs-app.com/1/cache/setGachaToken')
+	normalPost('/1/cache/setGachaToken')
 
 	data = getData()
 	data['gacha_id'] = '1'
@@ -39,7 +39,7 @@ def gacha():
 	data['is_sell_card'] = '1'
 	data['is_over_soundoll'] = '1'
 	try:
-		r = session.post('http://sb69.geechs-app.com/1/gacha/execGacha', data = data, timeout = 30)
+		r = session.post('http://' + host + '/1/gacha/execGacha', data = data, timeout = 30)
 	except:
 		return 
 	
@@ -61,20 +61,20 @@ def gacha():
 		if ((not sellN and card['drop_item_master']['card_rare'] == '1') or (card['drop_item_master']['card_max_soul_red'] == '1' and int(card['drop_item_master']['card_id']) < 40000)):
 			cards.append(card['create_flg']['inserted_id'])
 
-	normalPost('http://sb69.geechs-app.com/1/user/getUser')
+	normalPost('/1/user/getUser')
 
 	data = getData()
 	data['detail_flg'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/gacha/getGachaMstAll', data, 45)
+	auto_post('/1/gacha/getGachaMstAll', data, 45)
 
-	normalPost('http://sb69.geechs-app.com/1/gacha/getGachaData')
+	normalPost('/1/gacha/getGachaData')
 
 	return cards
 
 def recycle():
 	data = getData()
 	data['detail_flg'] = '1'
-	r = auto_post('http://sb69.geechs-app.com/1/RecycleGacha/getCardDataAll', data, 45)
+	r = auto_post('/1/RecycleGacha/getCardDataAll', data, 45)
 	
 	material_card_ids = []
 
@@ -93,18 +93,18 @@ def recycle():
 			if (i > 0):
 				card_ids += ','
 			card_ids += material_card_ids[i]
-		normalPost('http://sb69.geechs-app.com/1/cache/setRecycleToken')
+		normalPost('/1/cache/setRecycleToken')
 		data = getData()
 		data['material_card_ids'] = card_ids
 		#print (card_ids)
 		try:
-			session.post('http://sb69.geechs-app.com/1/RecycleGacha/execRecycleCard', data = data, timeout = 30)
+			session.post('http://' + host + '/1/RecycleGacha/execRecycleCard', data = data, timeout = 30)
 		except:
 			return False
 
 	data = getData()
 	data['detail_flg'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/RecycleGacha/getCardDataAll', data)
+	auto_post('/1/RecycleGacha/getCardDataAll', data)
 	return True
 
 def recycle_card():
@@ -112,7 +112,7 @@ def recycle_card():
 		time.sleep(0.1)
 
 def merge(base_card_id, drop_cards = 0):
-	r = normalPost('http://sb69.geechs-app.com/1/Bromide/getCardDataAll', 45)
+	r = normalPost('/1/Bromide/getCardDataAll', 45)
 	material_card_ids = []
 
 	try:
@@ -132,36 +132,38 @@ def merge(base_card_id, drop_cards = 0):
 	if (len(material_card_ids) == 0):
 		return False
 
-	normalPost('http://sb69.geechs-app.com/1/cache/setCardMergeToken')
+	normalPost('/1/cache/setCardMergeToken')
 
 	data = getData()
 	data['base_card_id'] = base_card_id
 	data['material_card_ids[]'] = material_card_ids
 	try:
-		after = session.post('http://sb69.geechs-app.com/1/Bromide/execMergeCard', data = data, timeout = 30).json()['action']['after']
+		after = session.post('http://' + host + '/1/Bromide/execMergeCard', data = data, timeout = 30).json()['action']['after']
 	except:
 		return True
 	
-	normalPost('http://sb69.geechs-app.com/1/user/getUser')
+	normalPost('/1/user/getUser')
 
 	if int(after['card_level']) >= int(after['card_max_level']):
 		print ("Level MAX!!!!")
 		target_card_list.remove(base_card_id)
 		raise GachaError('card level max')
+
+	print ('Lv. ' + str(after['card_level']))
 	
 	return drop_cards == 0
 
 def merge_card(base_card_id, drop_cards = 0):
-	normalPost('http://sb69.geechs-app.com/1/CardDeck/getDeckList', 30)
+	normalPost('/1/CardDeck/getDeckList', 30)
 	data = getData()
 	del data['user_id']
 	data['support_id'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, 30)
+	auto_post('/1/CardDeck/getSupportDeck', data, 30)
 
 	while (merge(base_card_id, drop_cards)):
 		time.sleep(0.4)
 
-	normalPost('http://sb69.geechs-app.com/1/CardDeck/getDeckList', 30)
+	normalPost('/1/CardDeck/getDeckList', 30)
 
 def clean_all(base_card, merge_turns = 9):
 	init_time = datetime.datetime.now()
@@ -209,12 +211,12 @@ def clean_drop_only(base_card):
 	return True
 
 def get_card_info():
-	normalPost('http://sb69.geechs-app.com/1/CardDeck/getDeckList', 30)
+	normalPost('/1/CardDeck/getDeckList', 30)
 	data = getData()
 	del data['user_id']
 	data['support_id'] = '1'
-	auto_post('http://sb69.geechs-app.com/1/CardDeck/getSupportDeck', data, 30)
-	card_list = normalPost('http://sb69.geechs-app.com/1/Bromide/getCardDataAll', 45).json()['action']
+	auto_post('/1/CardDeck/getSupportDeck', data, 30)
+	card_list = normalPost('/1/Bromide/getCardDataAll', 45).json()['action']
 	card_info = []
 	for card in card_list:
 		if int(card['card_level']) < int(card['card_max_level']):
@@ -241,7 +243,10 @@ def clean():
 	merge_only = cfg.getboolean('clean', 'merge_only')
 	for card in target_card_list_:
 		if merge_only:
-			merge_card(card)
+			try:
+				merge_card(card)
+			except:
+				pass
 		elif drop_only:
 			clean_drop_only(card)
 		else:

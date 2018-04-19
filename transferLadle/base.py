@@ -7,6 +7,8 @@ import datetime
 from configparser import ConfigParser
 import os
 
+host = 'api.sb69gbmm.com'
+
 session = requests.Session()
 
 cfg = ConfigParser()
@@ -39,7 +41,7 @@ def getData():
 def auto_post(url, data, timeout = 30):
 	while (True):
 		try:
-			return session.post(url, data = data, timeout = timeout)
+			return session.post('http://' + host + url, data = data, timeout = timeout)
 		except:
 			continue
 
@@ -56,12 +58,15 @@ def set_config(dir_):
 	stamina_max = cfg.getint('data', 'stamina_max')
 	global user_id
 	user_id = cfg.get('data', 'user_id')
+	if cfg.has_section('proxies'):
+		session.proxies = {prx: cfg['proxies'][prx] for prx in cfg['proxies']}
+		print ('proxies == ' + str(session.proxies))
 
 def login(cfg_):
 	data = {'uuid': cfg.get('data', 'uuid'), 'owner_user_id': '0', 'front_user_stamina': '0'}
 	data['unique_date'] = uniqueDate()
 	del session.headers['SBR-AUTHORIZED-TOKEN']
-	r = auto_post('http://sb69.geechs-app.com/1/startup/login', data, 90)
+	r = auto_post('/1/startup/login', data, 90)
 	token = r.headers['SBR_AUTHORIZED_TOKEN']
 
 	user = r.json()['common']['user']
@@ -72,13 +77,13 @@ def login(cfg_):
 	user_id = user['user_id']
 	data = getData()
 	del data['user_id']
-	auto_post('http://sb69.geechs-app.com/1/index/getBanner', data)
+	auto_post('/1/index/getBanner', data)
 
 	session.headers['SBR-AUTHORIZED-TOKEN'] = token
 	data = getData()
 	del data['user_id']
 	data['uuid'] = cfg.get('data', 'uuid')
-	token = auto_post('http://sb69.geechs-app.com/1/startup/login', data, 90).headers['SBR_AUTHORIZED_TOKEN']
+	token = auto_post('/1/startup/login', data, 90).headers['SBR_AUTHORIZED_TOKEN']
 	session.headers['SBR-AUTHORIZED-TOKEN'] = token
 
 	cfg_.set('data', 'stamina_max', str(max(int(user['stamina']), int(user['stamina_max']))))
