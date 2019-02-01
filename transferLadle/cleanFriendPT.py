@@ -137,11 +137,11 @@ def merge(base_card, drop_list, efficient = False):
     if int(after['card_level']) >= int(after['card_max_level']):
         print ("Level MAX!!!! " + card['card_name'].encode('gbk', 'ignore').decode('gbk'))
         target_card_list.remove(base_card['user_card_id'])
-        raise GachaError('card level max')
+        return False
 
     print ('Lv. ' + str(after['card_level']) + ' ' + base_card['card_name'].encode('gbk', 'ignore').decode('gbk'))
     
-    return drop_cards == 0
+    return len(drop_list) > 0
 
 def merge_card(base_card_id, drop_cards = None, efficient = False):
     normalPost('/1/CardDeck/getDeckList', 30)
@@ -166,7 +166,7 @@ def merge_card(base_card_id, drop_cards = None, efficient = False):
     if drop_cards is not None:
         drop_cards.clear()
         for card in drop_list:
-            drop_card.append(card['user_card_id'])
+            drop_cards.append(card['user_card_id'])
 
 def get_card_info():
     normalPost('/1/CardDeck/getDeckList', 30)
@@ -215,18 +215,12 @@ def clean():
                     return target_card_list
             target_card_list_ = list(target_card_list)
             for card in target_card_list_:
-                try:
-                    merge_card(card, drop_list, True)
-                except:
-                    pass
+                merge_card(card, drop_list, True)
                 if len(drop_list) == 0: break
 
             target_card_list_ = list(target_card_list)
             for card in target_card_list_:
-                try:
-                    merge_card(card, drop_list)
-                except:
-                    pass
+                merge_card(card, drop_list)
                 if len(drop_list) == 0: break
         else: break
         print ("                    get " + str(tot) + " pt now")
