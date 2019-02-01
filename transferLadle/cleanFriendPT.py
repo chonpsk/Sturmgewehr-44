@@ -108,14 +108,14 @@ def recycle_card():
     while (not recycle()):
         time.sleep(0.1)
 
-def merge(base_card, drop_cards = None, efficient = False):
-    r = normalPost('/1/Bromide/getCardDataAll', 45)
+def merge(base_card, drop_list, efficient = False):
     material_card_ids = []
 
-    for card in r.json()['action']:
-        if (drop_cards is None or card['user_card_id'] in drop_cards) and (not efficient or card['card_attribute_id'] == base_card['card_attribute_id']) and (card['card_rare'] == '1' or (int(card['card_rare']) <= 4 and card['card_soul_yellow'] == '1' and card['rock_flg'] == '0')):
+    card_list = drop_list.copy()
+    for card in card_list:
+        if (not efficient or card['card_attribute_id'] == base_card['card_attribute_id']) and (card['card_rare'] == '1' or (int(card['card_rare']) <= 4 and card['card_soul_yellow'] == '1' and card['rock_flg'] == '0')):
             material_card_ids.append(card['user_card_id'])
-            if drop_cards is not None: drop_cards.remove(card['user_card_id'])
+            drop_list.remove(card)
         if (len(material_card_ids) == 10):
             break
 
@@ -135,11 +135,11 @@ def merge(base_card, drop_cards = None, efficient = False):
     normalPost('/1/user/getUser')
 
     if int(after['card_level']) >= int(after['card_max_level']):
-        print ("Level MAX!!!!")
-        target_card_list.remove(base_card_id)
+        print ("Level MAX!!!! " + card['card_name'].encode('gbk', 'ignore').decode('gbk'))
+        target_card_list.remove(base_card['user_card_id'])
         raise GachaError('card level max')
 
-    print ('Lv. ' + str(after['card_level']))
+    print ('Lv. ' + str(after['card_level']) + ' ' + base_card['card_name'].encode('gbk', 'ignore').decode('gbk'))
     
     return drop_cards == 0
 
@@ -151,16 +151,22 @@ def merge_card(base_card_id, drop_cards = None, efficient = False):
     auto_post('/1/CardDeck/getSupportDeck', data, 30)
 
     card_list = normalPost('/1/Bromide/getCardDataAll', 45).json()['action']
+    drop_list = []
     base_card = None
     for card in card_list:
-        if card['user_card_id'] == base_card_id:
-            base_card = card
-            break
+        if card['user_card_id'] == base_card_id: base_card = card
+        if card['user_card_id'] in drop_cards: drop_list.append(card)
+    if drop_cards is None: drop_list = card_list
     
-    while (merge(base_card, drop_cards, efficient)):
+    while (merge(base_card, drop_list, efficient)):
         time.sleep(0.4)
 
     normalPost('/1/CardDeck/getDeckList', 30)
+
+    if drop_cards is not None:
+        drop_cards.clear()
+        for card in drop_list:
+            drop_card.append(card['user_card_id'])
 
 def get_card_info():
     normalPost('/1/CardDeck/getDeckList', 30)
@@ -213,14 +219,15 @@ def clean():
                     merge_card(card, drop_list, True)
                 except:
                     pass
-                print (drop_list)
+                if len(drop_list) == 0: break
 
+            target_card_list_ = list(target_card_list)
             for card in target_card_list_:
                 try:
                     merge_card(card, drop_list)
                 except:
                     pass
-                print (drop_list)
+                if len(drop_list) == 0: break
         else: break
         print ("                    get " + str(tot) + " pt now")
     return target_card_list
