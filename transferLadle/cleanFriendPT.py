@@ -39,13 +39,9 @@ def gacha():
         data['rare_sell_list'] = '2,'
     data['is_sell_card'] = '1'
     data['is_over_soundoll'] = '1'
-    try:
-        r = session.post('http://' + host + '/1/gacha/execGacha', data = data, timeout = 30)
-    except:
-        return 
+
+    r = auto_post('/1/gacha/execGacha', data, 45)
     
-    global gacha_turns
-    gacha_turns -= 1
     print ('error == "' + str(r.json()['common']['api_status']['error_message_flg']) + '"')
     if (str(r.json()['common']['api_status']['error_message_flg']) == '1'):
         raise GachaError("can't gacha")
@@ -112,23 +108,16 @@ def recycle_card():
     while (not recycle()):
         time.sleep(0.1)
 
-def merge(base_card_id, drop_cards = 0):
+def merge(base_card, drop_cards = None, efficient = False):
     r = normalPost('/1/Bromide/getCardDataAll', 45)
     material_card_ids = []
 
-    try:
-        r.json()
-    except:
-        return True
-
     for card in r.json()['action']:
-        if ((card['card_rare'] == '1' or (int(card['card_rare']) <= 4 and card['card_soul_yellow'] == '1')) and card['rock_flg'] == '0'):
+        if (drop_cards is None or card['user_card_id'] in drop_cards) and (not efficient or card['card_attribute_id'] == base_card['card_attribute_id']) and (card['card_rare'] == '1' or (int(card['card_rare']) <= 4 and card['card_soul_yellow'] == '1' and card['rock_flg'] == '0')):
             material_card_ids.append(card['user_card_id'])
+            if drop_cards is not None: drop_cards.remove(card['user_card_id'])
         if (len(material_card_ids) == 10):
             break
-
-    if drop_cards != 0:
-        material_card_ids = drop_cards
 
     if (len(material_card_ids) == 0):
         return False
@@ -136,7 +125,7 @@ def merge(base_card_id, drop_cards = 0):
     normalPost('/1/cache/setCardMergeToken')
 
     data = getData()
-    data['base_card_id'] = base_card_id
+    data['base_card_id'] = base_card['user_card_id']
     data['material_card_ids[]'] = material_card_ids
     try:
         after = session.post('http://' + host + '/1/Bromide/execMergeCard', data = data, timeout = 30).json()['action']['after']
@@ -154,62 +143,24 @@ def merge(base_card_id, drop_cards = 0):
     
     return drop_cards == 0
 
-def merge_card(base_card_id, drop_cards = 0):
+def merge_card(base_card_id, drop_cards = None, efficient = False):
     normalPost('/1/CardDeck/getDeckList', 30)
     data = getData()
     del data['user_id']
     data['support_id'] = '1'
     auto_post('/1/CardDeck/getSupportDeck', data, 30)
 
-    while (merge(base_card_id, drop_cards)):
+    card_list = normalPost('/1/Bromide/getCardDataAll', 45).json()['action']
+    base_card = None
+    for card in card_list:
+        if card['user_card_id'] == base_card_id:
+            base_card = card
+            break
+    
+    while (merge(base_card, drop_cards, efficient)):
         time.sleep(0.4)
 
     normalPost('/1/CardDeck/getDeckList', 30)
-
-def clean_all(base_card, merge_turns = 9):
-    init_time = datetime.datetime.now()
-    try:
-        merge(base_card)
-        time.sleep(2)
-    except GachaError as gg:
-        print (gg.value)
-        return False
-    up_bound = gacha_turns
-    for i in range(0, up_bound):
-        print ('round ' + str(up_bound - gacha_turns))
-        print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
-        try:
-            gacha()
-            time.sleep(0.3)
-            if not allDecompose:
-                recycle_card()
-                time.sleep(0.4)
-            if sellN:
-                if i % merge_turns == 0:
-                    merge_card(base_card)
-            else:
-                merge_card(base_card)
-        except GachaError as gg:
-            print (gg.value)
-            return False
-        print ("                    get " + str(tot) + " pt now")
-    return True
-
-def clean_drop_only(base_card):
-    init_time = datetime.datetime.now()
-    up_bound = gacha_turns
-    for i in range(0, up_bound):
-        print ('round ' + str(gacha_turns))
-        print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
-        try:
-            drop_cards = gacha()
-            time.sleep(0.3)
-            merge_card(base_card, drop_cards)
-        except GachaError as gg:
-            print (gg.value)
-            return False
-        print ("                    get " + str(tot) + " pt now")
-    return True
 
 def get_card_info():
     normalPost('/1/CardDeck/getDeckList', 30)
@@ -241,18 +192,35 @@ def clean():
     gacha_turns = cfg.getint('clean', 'gacha_turns')
     global target_card_list
     target_card_list = eval(cfg.get('clean', 'target_card_list'))
-    target_card_list_ = list(target_card_list)
     drop_only = cfg.getboolean('clean', 'drop_only')
     merge_only = cfg.getboolean('clean', 'merge_only')
-    for card in target_card_list_:
-        if merge_only:
-            try:
-                merge_card(card)
-            except:
-                pass
-        elif drop_only:
-            clean_drop_only(card)
-        else:
-            clean_all(card)
-        print (' ==== ' + card + ' cleaned ====')
+
+    init_time = datetime.datetime.now()
+    for round_ in range(0, gacha_turns):
+        print ('round ' + str(round_))
+        print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
+        if len(target_card_list) > 0:
+            drop_list = None
+            if not merge_only:
+                try:
+                    drop_list = gacha()
+                except GachaError as gg:
+                    print (gg.value)
+                    return target_card_list
+            target_card_list_ = list(target_card_list)
+            for card in target_card_list_:
+                try:
+                    merge_card(card, drop_list, True)
+                except:
+                    pass
+                print (drop_list)
+
+            for card in target_card_list_:
+                try:
+                    merge_card(card, drop_list)
+                except:
+                    pass
+                print (drop_list)
+        else: break
+        print ("                    get " + str(tot) + " pt now")
     return target_card_list
