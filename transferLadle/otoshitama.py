@@ -5,12 +5,23 @@ import time
 import random
 import datetime
 
-def maxMaterialNum(material_list):
-    n = 0
-    for m in material_list.values():
-        if int(m['user_material_count']) // int(m['material_item_quantity']) > n :
+def minMaterialNum(item):
+    n = 10000
+    if item['is_limit'] == 1: n = int(item['limit_count']) - int(item['create_count'])
+    for m in item['material_list'].values():
+        if int(m['user_material_count']) // int(m['material_item_quantity']) < n :
             n = int(m['user_material_count']) // int(m['material_item_quantity'])
     return n
+
+def itemCreate(item, item_id, separate):
+    while minMaterialNum(item) > 0:
+        data = getData()
+        del data['user_id']
+        data['factory_item_id'] = item_id
+        data['num'] = 1
+        if not separate: data['num'] = minMaterialNum(item)
+        item = auto_post('/1/Factory/execCreateItem', data, 30).json()['action']['factory_item_list'][item_id]
+        time.sleep(0.3)
 
 def factoryExec(factory_id, item_id, separate):
     data = getData()
@@ -21,14 +32,12 @@ def factoryExec(factory_id, item_id, separate):
     data = getData()
     del data['user_id']
     data['factory_id'] = factory_id
-    material_list = auto_post('/1/Factory/getFactoryItemList', data, 30).json()['action']['factory_item_list'][item_id]['material_list']
-    while maxMaterialNum(material_list) > 0:
-        data = getData()
-        del data['user_id']
-        data['factory_item_id'] = item_id
-        data['num'] = 1
-        if not separate: data['num'] = maxMaterialNum(material_list)
-        material_list = auto_post('/1/Factory/execCreateItem', data, 30).json()['action']['factory_item_list'][item_id]['material_list']
+    factory_item_list = auto_post('/1/Factory/getFactoryItemList', data, 30).json()['action']['factory_item_list']
+    if item_id == -1:
+        for item_id in factory_item_list:
+            itemCreate(factory_item_list[item_id], item_id, separate)
+    else:
+        itemCreate(factory_item_list[item_id], item_id)
 
 def ticketGacha(gacha_id):
     data = getData()
