@@ -135,13 +135,20 @@ def merge(base_card, drop_list, efficient = False):
     normalPost('/1/user/getUser')
 
     if int(after['card_level']) >= int(after['card_max_level']):
-        print ("Level MAX!!!! " + card['card_name'].encode('gbk', 'ignore').decode('gbk'))
-        target_card_list.remove(base_card['user_card_id'])
+        print ("Level MAX!!!! " + base_card['card_name'].encode('gbk', 'ignore').decode('gbk'))
+        target_card_list.remove((base_card['user_card_id'], int(base_card['card_attribute_id']) - 1))
         return False
 
     print ('Lv. ' + str(after['card_level']) + ' ' + base_card['card_name'].encode('gbk', 'ignore').decode('gbk'))
     
     return len(drop_list) > 0
+
+def get_card_list():
+    while True:
+        try:
+            return normalPost('/1/Bromide/getCardDataAll', 45).json()['action']
+        except:
+            pass
 
 def merge_card(base_card_id, drop_cards = None, efficient = False):
     normalPost('/1/CardDeck/getDeckList', 30)
@@ -150,12 +157,12 @@ def merge_card(base_card_id, drop_cards = None, efficient = False):
     data['support_id'] = '1'
     auto_post('/1/CardDeck/getSupportDeck', data, 30)
 
-    card_list = normalPost('/1/Bromide/getCardDataAll', 45).json()['action']
+    card_list = get_card_list()
     drop_list = []
     base_card = None
     for card in card_list:
         if card['user_card_id'] == base_card_id: base_card = card
-        if card['user_card_id'] in drop_cards: drop_list.append(card)
+        if drop_cards is not None and card['user_card_id'] in drop_cards: drop_list.append(card)
     if drop_cards is None: drop_list = card_list
     
     while (merge(base_card, drop_list, efficient)):
@@ -174,7 +181,7 @@ def get_card_info():
     del data['user_id']
     data['support_id'] = '1'
     auto_post('/1/CardDeck/getSupportDeck', data, 30)
-    card_list = normalPost('/1/Bromide/getCardDataAll', 45).json()['action']
+    card_list = get_card_list()
     card_info = []
     for card in card_list:
         if int(card['card_level']) < int(card['card_max_level']):
@@ -201,27 +208,34 @@ def clean():
     drop_only = cfg.getboolean('clean', 'drop_only')
     merge_only = cfg.getboolean('clean', 'merge_only')
 
+    card_list = get_card_list()
+    for card in card_list:
+        if card['user_card_id'] in target_card_list:
+            pos = target_card_list.index(card['user_card_id'])
+            target_card_list[pos] = (target_card_list[pos], int(card['card_attribute_id']) - 1)
+
     init_time = datetime.datetime.now()
     for round_ in range(0, gacha_turns):
-        print ('round ' + str(round_))
-        print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
         if len(target_card_list) > 0:
+            print ('round ' + str(round_))
+            print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
+
             drop_list = None
             if not merge_only:
                 try:
                     drop_list = gacha()
                 except GachaError as gg:
                     print (gg.value)
-                    return target_card_list
+                    return [_[0] for _ in target_card_list]
             target_card_list_ = list(target_card_list)
+            attribute = [False] * 5
             for card in target_card_list_:
-                merge_card(card, drop_list, True)
-                if len(drop_list) == 0: break
+                if not attribute[card[1]]:
+                    merge_card(card[0], drop_list, True)
+                    if len(drop_list) == 0: break
+                    attribute[card[1]] = True
 
-            target_card_list_ = list(target_card_list)
-            for card in target_card_list_:
-                merge_card(card, drop_list)
-                if len(drop_list) == 0: break
+            if len(target_card_list) > 0: merge_card(target_card_list[0][0], drop_list)
         else: break
         print ("                    get " + str(tot) + " pt now")
-    return target_card_list
+    return [_[0] for _ in target_card_list]
