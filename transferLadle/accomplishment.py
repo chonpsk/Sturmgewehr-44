@@ -36,18 +36,17 @@ def accomplishment():
             time.sleep(0.2)
             print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
 
-def get_friendPT():
-    tot = cfg.getint('accomplishment', 'friendPT')
-    friendPT = ['40700101']
-    print ('get friendPT start')
+def get_accompolishment(acco_list, tot = 999):
+    print ('get accompolishment start')
     getList()
     while tot > 0:
         time.sleep(0.2)
         lst = getList()['3']
-        if not lst[friendPT[0]]['complete_flg']:
-            break
+        for acco in acco_list:
+            if not lst[acco]['complete_flg']:
+                return
         data = getData()
-        data['accomplishment_ids[]'] = friendPT
+        data['accomplishment_ids[]'] = acco_list
         time.sleep(0.2)
         try:
             session.post('http://' + host + '/1/Accomplishment/receiveAccomplishmentRewardBundle', data = data, timeout = 30)
@@ -56,3 +55,6 @@ def get_friendPT():
         tot -= 1
     print('get finished')
 
+def get_friendPT():
+    tot = cfg.getint('accomplishment', 'friendPT')
+    get_accompolishment(['40700101'], tot)
