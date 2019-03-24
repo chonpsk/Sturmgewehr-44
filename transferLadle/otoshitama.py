@@ -39,13 +39,12 @@ def factoryExec(factory_id, item_id, separate):
     else:
         itemCreate(factory_item_list[item_id], item_id)
 
-def ticketGacha(gacha_id):
+def ticketGacha(gacha_id, item_num = 999):
     data = getData()
     data['detail_flg'] = '1'
     r = auto_post('/1/gacha/getGachaMstAll', data, 45)
-    item_num = 0
     for gc in r.json()['action']:
-        if gc['gacha_id'] == gacha_id: item_num = int(gc['user_item_num'])
+        if gc['gacha_id'] == gacha_id: item_num = min(item_num, int(gc['user_item_num']))
 
     normalPost('/1/gacha/getGachaData')
 
