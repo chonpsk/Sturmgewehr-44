@@ -6,7 +6,7 @@ def read_event_episode():
     episode_list = normalPost('/1/Episode/getUserEpisodeAll').json()['action']['event']
     for event in episode_list.values():
         for episode in event['episode_list'].values():
-            if episode['show_state'] != '5':
+            if episode['show_state'] != '5' or episode['unlock_data']['unlock_flg'] != 1:
                 print (event['event_id'], episode['episode_id'])
                 print (episode, '\n')
             if episode['show_state'] == '4':

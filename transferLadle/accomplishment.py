@@ -15,7 +15,7 @@ def receive(acmp_lst_id, acc_ids, tot = 999):
         acmp_lst = getList()[acmp_lst_id]
         acc_ids_ = acc_ids.copy()
         for acc in acc_ids_:
-            if acmp_lst[acc]['complete_flg']:
+            if acc not in acmp_lst or not acmp_lst[acc]['complete_flg']:
                 acc_ids.remove(acc)
         if len(acc_ids) == 0:
             return False
@@ -35,9 +35,11 @@ def accomplishment():
     not_received = getList()
     for state in range(1, 4):
         time.sleep(0.2)
-        receive(str(state), not_received[str(state)])
+        receive(str(state), list(not_received[str(state)].keys()))
         print ('spend ' + str((datetime.datetime.now() - init_time).seconds) + 's now')
 
 def get_friendPT():
+    print ('friend PT cleaning start')
     tot = cfg.getint('accomplishment', 'friendPT')
     receive('3', ['40700101'], tot)
+    print ('friend PT cleaning finish')
